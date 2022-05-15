@@ -1,2 +1,137 @@
-# dreamgirlmusic-
-from pyrogram import Client, filters from pyrogram.types import (     InlineKeyboardButton,     InlineKeyboardMarkup ) import youtube_dl from youtube_search import YoutubeSearch import requests  import os from config import Config  bot = Client(     'SongPlayRoBot',     bot_token = Config.BOT_TOKEN,     api_id = Config.API_ID,     api_hash = Config.API_HASH )  ## Extra Fns -------------------------------  # Convert hh:mm:ss to seconds def time_to_seconds(time):     stringt = str(time)     return sum(int(x) * 60 ** i for i, x in enumerate(reversed(stringt.split(':'))))   ## Commands -------------------------------- @bot.on_message(filters.command(['start'])) def start(client, message):     TamilBots = f'👋 𝗛𝗲𝗹𝗹𝗼 @{message.from_user.username}\n\n𝗜 𝗔𝗺 🎸𝐒𝐨𝐧𝐠 𝐏𝐥𝐚𝐲 𝐁𝐨𝐭[🎶](https://telegra.ph/file/6cb884fe1cb943ec12df1.mp4)\n\n𝗦𝗲𝗻𝗱 𝗧𝗵𝗲 𝗡𝗮𝗺𝗲 𝗢𝗳 𝗧𝗵𝗲 𝗦𝗼𝗻𝗴 𝗬𝗼𝘂 𝗪𝗮𝗻𝘁... 😍🥰🤗\n\n𝗧𝘆𝗽𝗲 /s 𝗦𝗼𝗻𝗴 𝗡𝗮𝗺𝗲\n\n𝐄𝐠. `/s Faded`'     message.reply_text(         text=TamilBots,          quote=False,         reply_markup=InlineKeyboardMarkup(             [                 [                     InlineKeyboardButton('𝐒𝐔𝐏𝐏𝐎𝐑𝐓 👬', url='https://t.me/TamilSupport'),                     InlineKeyboardButton('𝐀𝐃𝐃 𝐌𝐄 🤗', url='https://t.me/SongProBot?startgroup=true')                 ]             ]         )     )  @bot.on_message(filters.command(['s'])) def a(client, message):     query = ''     for i in message.command[1:]:         query += ' ' + str(i)     print(query)     m = message.reply('🔎 𝐒𝐞𝐚𝐫𝐜𝐡𝐢𝐧𝐠 𝐭𝐡𝐞 𝐬𝐨𝐧𝐠...')     ydl_opts = {"format": "bestaudio[ext=m4a]"}     try:         results = []         count = 0         while len(results) == 0 and count &lt; 6:             if count>0:                 time.sleep(1)             results = YoutubeSearch(query, max_results=1).to_dict()             count += 1         # results = YoutubeSearch(query, max_results=1).to_dict()         try:             link = f"https://youtube.com{results[0]['url_suffix']}"             # print(results)             title = results[0]["title"]             thumbnail = results[0]["thumbnails"][0]             duration = results[0]["duration"]              ## UNCOMMENT THIS IF YOU WANT A LIMIT ON DURATION. CHANGE 1800 TO YOUR OWN PREFFERED DURATION AND EDIT THE MESSAGE (30 minutes cap) LIMIT IN SECONDS             # if time_to_seconds(duration) >= 1800:  # duration limit             #     m.edit("Exceeded 30mins cap")             #     return              views = results[0]["views"]             thumb_name = f'thumb{message.message_id}.jpg'             thumb = requests.get(thumbnail, allow_redirects=True)             open(thumb_name, 'wb').write(thumb.content)          except Exception as e:             print(e)             m.edit('𝐅𝐨𝐮𝐧𝐝 𝐍𝐨𝐭𝐡𝐢𝐧𝐠. 𝐓𝐫𝐲 𝐂𝐡𝐚𝐧𝐠𝐢𝐧𝐠 𝐓𝐡𝐞 𝐒𝐩𝐞𝐥𝐥𝐢𝐧𝐠 𝐀 𝐋𝐢𝐭𝐭𝐥𝐞 😕')             return     except Exception as e:         m.edit(             "✖️ 𝐅𝐨𝐮𝐧𝐝 𝐍𝐨𝐭𝐡𝐢𝐧𝐠. 𝐒𝐨𝐫𝐫𝐲.\n\n𝐓𝐫𝐲 𝐀𝐧𝐨𝐭𝐡𝐞𝐫 𝐊𝐞𝐲𝐰𝐨𝐫𝐤 𝐎𝐫 𝐌𝐚𝐲𝐛𝐞 𝐒𝐩𝐞𝐥𝐥 𝐈𝐭 𝐏𝐫𝐨𝐩𝐞𝐫𝐥𝐲.\n\nEg.`/s Faded`"         )         print(str(e))         return     m.edit("🔎 𝐅𝐢𝐧𝐝𝐢𝐧𝐠 𝐀 𝐒𝐨𝐧𝐠 🎶 𝐏𝐥𝐞𝐚𝐬𝐞 𝐖𝐚𝐢𝐭 ⏳️ 𝐅𝐨𝐫 𝐅𝐞𝐰 𝐒𝐞𝐜𝐨𝐧𝐝𝐬 [🚀](https://telegra.ph/file/67f41ae52a85dfc0551ae.mp4)")     try:         with youtube_dl.YoutubeDL(ydl_opts) as ydl:             info_dict = ydl.extract_info(link, download=False)             audio_file = ydl.prepare_filename(info_dict)             ydl.process_info(info_dict)         rep = f'🎧 𝐓𝐢𝐭𝐥𝐞 : [{title[:35]}]({link})\n⏳ 𝐃𝐮𝐫𝐚𝐭𝐢𝐨𝐧 : `{duration}`\n🎬 𝐒𝐨𝐮𝐫𝐜𝐞 : [Youtube](https://youtu.be/3pN0W4KzzNY)\n👁‍🗨 𝐕𝐢𝐞𝐰𝐬 : `{views}`\n\n💌 𝐁𝐲 : @SongPlayRoBot'         secmul, dur, dur_arr = 1, 0, duration.split(':')         for i in range(len(dur_arr)-1, -1, -1):             dur += (int(dur_arr[i]) * secmul)             secmul *= 60         message.reply_audio(audio_file, caption=rep, parse_mode='md',quote=False, title=title, duration=dur, thumb=thumb_name)         m.delete()     except Exception as e:         m.edit('❌ 𝐄𝐫𝐫𝐨𝐫\n\n Report This Erorr To Fix @TamilSupport ❤️')         print(e)     try:         os.remove(audio_file)         os.remove(thumb_name)     except Exception as e:         print(e)  bot.run()
+#!/bin/bash
+### Yukki Music Bot Installer
+
+pprint (){
+	cred='\033[0;31m'
+	cgreen='\033[0;32m'
+	cyellow='\033[0;33m'
+	cblue='\033[0;34m'
+	cpurple='\033[0;35m'
+	eval "export color='$cpurple'"
+	[ ! -z $2 ] && eval "export color=\"\$$2\""
+    printf "$color $1"
+}
+
+color_reset(){ printf '\033[0;37m';}
+
+yesnoprompt(){
+	old_stty_cfg=$(stty -g)
+	stty raw -echo ; answer=$(head -c 1)
+	stty $old_stty_cfg
+	echo "$answer" | grep -iq "^y"
+}
+
+update() {
+	pprint "\n\nUpdating package list.. "
+	sudo apt update 2>&1 | grep "can be upgraded" &>/dev/null
+	if [ $? -eq 0 ]; then
+		pprint "UPDATE AVAILABLE" "cgreen"
+		pprint "\n\nDo you want to automatically upgrade (y/n)?"
+		if yesnoprompt; then
+			pprint "\n\nUpgrading packages.. "
+			sudo apt upgrade -y &>/dev/null &&
+			pprint "DONE!\n\n" "cgreen" || (pprint "FAIL.\n\n" "cred"; exit 1)
+		else
+			echo
+		fi
+	else
+		pprint "ALREADY UP TO DATE\n\n" "cgreen"
+	fi
+}
+
+packages(){
+	if ! command -v pip &>/dev/null; then
+		pprint "Couldn't found pip, installing now.. "
+		sudo apt install python3-pip -y 2>pypilog.txt 1>/dev/null &&
+		pprint "SUCCESS.\n\n" "cgreen" || (pprint "FAIL.\n\n" "cred"; exit 1)
+	fi
+
+	if ! command -v ffmpeg &>/dev/null; then
+		pprint "Couldn't found ffmpeg, installing now.. "
+		if sudo apt install ffmpeg -y &>/dev/null;then
+			pprint "SUCCESS.\n\n" "cgreen"
+		else
+			pprint "FAIL.\n\n" "cred"
+			pprint "You need to install ffmpeg manually in order to use YukkiMusicBot, exiting..\n" "cblue"
+			exit 1
+		fi
+	fi
+
+	# Check ffmpeg version and warn user if necessary.
+	fv=$(grep -Po 'version (3.*?) ' <<< $(ffmpeg -version)) &&
+	pprint "Playing live streams not going to work since you have ffmpeg $fv, live streams are supported by version 4+.\n" "cblue"
+}
+
+
+node(){
+	command -v npm &>/dev/null && return
+	pprint "Installing Nodejs and Npm..  "
+	curl -fssL https://deb.nodesource.com/setup_17.x | sudo -E bash - &>nodelog.txt &&
+	sudo apt install nodejs -y &>>nodelog.txt &&
+	sudo npm i -g npm &>>nodelog.txt &&
+	pprint "SUCCESS!\n" "cgreen" || (pprint "FAIL.\n" "cred"; exit 1)
+}
+
+
+repo(){
+	# Get git repo if the installer is runned standalone
+	[[ ! "YukkiMusicBot" == $(basename -s .git `git config --get remote.origin.url`) ]] &&
+	git clone https://github.com/notreallyshikhar/YukkiMusicBot &&  cd YukkiMusicBot
+}
+
+
+installation(){
+	pprint "\n\nUpgrading pip and installing dependency packages.. "
+	pip3 install -U pip &>>pypilog.txt &&
+	pip3 install -U -r requirements.txt &>>pypilog.txt &&
+	pprint "DONE.\n" "cgreen" && return
+	pprint "FAIL.\n" "cred"
+	exit 1
+}
+
+clear
+pprint "Welcome to Yukki Music Bot Setup Installer\n\n"
+pprint "If you see any error during Installation Process, Please refer to these files for logs: "
+pprint "\nFor node js errors , Checkout nodelog.txt"
+pprint "\nFor pypi packages errors , Checkout pypilog.txt"
+sleep 2
+pprint "\n\nScript needs sudo privileges in order to update & install packages.\n"
+sudo test
+
+update
+packages
+node
+repo
+installation
+pprint "\n\n\n\n\nYukki Music Bot Installation Completed!" "cgreen"
+sleep 4
+clear
+
+pprint "\nEnter Your Values Below\n\n\n"
+pprint "API ID: "; color_reset; read api_id
+pprint "\nAPI HASH: "; color_reset; read api_hash
+pprint "\nBOT TOKEN: "; color_reset; read bot_token
+pprint "\nMONGO DB URI: "; color_reset; read mongo_db
+pprint "\nLOG GROUP ID: "; color_reset; read logger
+pprint "\nPYROGRAM STRING SESSION OF ASSISTANT ACCOUNT: "; color_reset; read string_session
+pprint "\nMUSIC BOT NAME: "; color_reset; read mbt
+pprint "\nOwner Id:"; color_reset; read ownid
+
+pprint "\n\nProcessing your vars, Wait a while!" "cgreen"
+
+if [ -f .env ]; then
+	rm .env
+fi
+
+echo """API_ID = $api_id
+API_HASH = $api_hash
+BOT_TOKEN = $bot_token
+MONGO_DB_URI = $mongo_db
+LOG_GROUP_ID = $logger
+MUSIC_BOT_NAME = $mbt
+STRING_SESSION = $string_session
+OWNER_ID = $ownid""" > .env
+clear
+pprint "\n\n\nYour Vars have been saved Successfully!, Thanks for using Yukki Installer, now you can proceed by starting the bot with bash start!"
+pprint "\n\n\nWant more vars?"
+pprint "\nCheckout config.py and readme.md inside config folder for addtional vars. You can change all images , Thumbs, mode and everything from vars. Have a look towards them\n\n"
